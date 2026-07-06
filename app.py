@@ -13,7 +13,6 @@ db_path = Path("data/db/bluestock_mf.db")
 def load_all_dashboard_data():
     conn = sqlite3.connect(db_path)
     
-    # 1. Page 1 (Industry Overview) Queries
     aum = pd.read_sql_query("SELECT * FROM fact_aum", conn)
     sip = pd.read_sql_query("SELECT * FROM fact_sip_industry", conn)
     
@@ -37,17 +36,14 @@ def load_all_dashboard_data():
         conn
     )['total_schemes'].iloc[0]
     
-    # 2. Page 2 (Fund Performance) Queries
     funds = pd.read_sql_query("SELECT * FROM dim_fund", conn)
     performance = pd.read_sql_query("SELECT * FROM fact_performance", conn)
     
-    # 3. Page 3 (Investor Analytics) Queries
     transactions = pd.read_sql_query(
         "SELECT amount_inr, gender, age_group, transaction_type, state, city_tier FROM fact_transactions", 
         conn
     )
     
-    # 4. Page 4 (SIP & Market Trends) Queries
     combo_query = """
         WITH monthly_nifty AS (
             SELECT SUBSTR(date, 1, 7) AS month, AVG(close_value) AS avg_nifty_close
@@ -61,7 +57,6 @@ def load_all_dashboard_data():
         ORDER BY s.month
     """
     combo_df = pd.read_sql_query(combo_query, conn)
-    # Parse month column to datetime for proper time-series rendering on charts
     combo_df['month_dt'] = pd.to_datetime(combo_df['month'] + '-01')
     
     category_inflows = pd.read_sql_query("SELECT month, category, net_inflow_crore FROM fact_category_inflows", conn)
@@ -87,7 +82,6 @@ if not db_path.exists():
     try:
         import subprocess
         import sys
-        # Run the ETL pipeline script to create the DB dynamically
         result = subprocess.run([sys.executable, "scripts/etl_pipeline.py"], capture_output=True, text=True)
         if result.returncode == 0:
             st.success("Database initialized successfully! Reloading...")
@@ -98,10 +92,8 @@ if not db_path.exists():
         st.error(f"Failed to automatically initialize database: {e}")
 else:
     try:
-        # Load all data
         data = load_all_dashboard_data()
         
-        # Navigation
         st.sidebar.title("📊 MF Analytics Platform")
         page = st.sidebar.radio(
             "Navigate Pages", 
@@ -109,14 +101,10 @@ else:
         )
         st.sidebar.markdown("---")
         
-        # ==============================================================
-        # PAGE 1: INDUSTRY OVERVIEW
-        # ==============================================================
         if page == "Industry Overview":
             st.title("📈 Mutual Fund Industry Overview")
             st.markdown("---")
             
-            # KPI Cards
             col1, col2, col3, col4 = st.columns(4)
             
             try:
@@ -166,14 +154,10 @@ else:
                 fig_bar.update_layout(yaxis={'categoryorder':'total ascending'})
                 st.plotly_chart(fig_bar, use_container_width=True)
 
-        # ==============================================================
-        # PAGE 2: FUND PERFORMANCE
-        # ==============================================================
         elif page == "Fund Performance":
             st.title("🏆 Mutual Fund Scheme Performance")
             st.markdown("---")
             
-            # Interactive Filters on Sidebar
             st.sidebar.subheader("Performance Filters")
             
             fh_list = sorted(data['performance']['fund_house'].unique())
@@ -185,7 +169,6 @@ else:
             plan_list = sorted(data['performance']['plan'].unique())
             selected_plan = st.sidebar.multiselect("Select Plan Option", plan_list, default=plan_list)
             
-            # Apply Filters
             filtered_perf = data['performance'][
                 (data['performance']['fund_house'].isin(selected_fh)) &
                 (data['performance']['category'].isin(selected_cat)) &
@@ -271,14 +254,10 @@ else:
             else:
                 st.warning("No scheme details to show.")
 
-        # ==============================================================
-        # PAGE 3: INVESTOR ANALYTICS
-        # ==============================================================
         elif page == "Investor Analytics":
             st.title("👥 Investor Demographics & Transaction Analytics")
             st.markdown("---")
             
-            # Interactive Filters on Sidebar
             st.sidebar.subheader("Investor Filters")
             
             tier_list = sorted(data['transactions']['city_tier'].unique())
@@ -290,7 +269,6 @@ else:
             age_list = sorted(data['transactions']['age_group'].unique())
             selected_age = st.sidebar.multiselect("Select Age Group", age_list, default=age_list)
             
-            # Apply Filters
             filtered_tx = data['transactions'][
                 (data['transactions']['city_tier'].isin(selected_tier)) &
                 (data['transactions']['state'].isin(selected_state)) &
@@ -338,14 +316,10 @@ else:
             else:
                 st.warning("No transactions match the selected filter combinations.")
 
-        # ==============================================================
-        # PAGE 4: SIP & MARKET TRENDS
-        # ==============================================================
         elif page == "SIP & Market Trends":
             st.title("📊 SIP Inflows & Benchmark Market Trends")
             st.markdown("---")
             
-            # Prepare data
             inflows = data['category_inflows'].copy()
             inflows['Year'] = inflows['month'].str.split('-').str[0]
             
@@ -355,7 +329,6 @@ else:
                 st.subheader("SIP Inflow Volumes vs Nifty 50 Close Value")
                 fig_combo = go.Figure()
                 
-                # Add Bar chart for SIP inflows
                 fig_combo.add_trace(
                     go.Bar(
                         x=data['combo_df']['month_dt'],
@@ -366,7 +339,6 @@ else:
                     )
                 )
                 
-                # Add Line chart for Nifty 50 close
                 fig_combo.add_trace(
                     go.Scatter(
                         x=data['combo_df']['month_dt'],
@@ -381,7 +353,7 @@ else:
                     xaxis=dict(
                         title=dict(text="Month"),
                         tickformat="%b\n%Y",
-                        dtick="M6"  # Show ticks every 6 months to prevent label overlap
+                        dtick="M6"
                     ),
                     yaxis=dict(
                         title=dict(
@@ -416,7 +388,6 @@ else:
                     margins_name='Total'
                 ).fillna(0)
                 
-                # Format numeric columns as integer crores with commas
                 st.dataframe(pivot.style.format("{:,.0f}"), use_container_width=True)
                 
                 st.markdown("---")
