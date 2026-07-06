@@ -1,19 +1,72 @@
 # Mutual Fund Analytics Platform
 
-An end-to-end data engineering and ETL pipeline for mutual fund data analysis, using Python, SQL, and SQLite.
+An end-to-end data pipeline, performance engine, and dashboard suite for Indian mutual fund analysis.
 
 ## Project Structure
 
-- `data/raw/` : Original datasets and live API fetches.
-- `data/processed/` : Cleaned and normalized datasets.
-- `sql/` : Database DDL schemas and analytical queries.
-- `notebooks/` : Jupyter notebooks for exploratory data analysis (EDA).
-- `dashboard/` : Power BI / Tableau dashboard files.
-- `reports/` : Generated reports and presentations.
+```text
+E:/MutualFundAnalysis/
+├── data/
+│   ├── raw/                 # Original CSVs and raw API downloads
+│   ├── processed/           # Cleaned, forward-filled CSV files
+│   └── db/                  # SQLite database location (bluestock_mf.db)
+├── scripts/
+│   ├── etl_pipeline.py      # Automated Ingestion -> Cleaning -> SQL Loading pipeline
+│   ├── live_nav_fetch.py    # AMFI API live downloader
+│   ├── compute_metrics.py   # Performance calculator (CAGR, Sharpe, Sortino, Alpha, Beta)
+│   └── advanced_analytics.py# Monte Carlo simulations and Markowitz Frontier optimization
+├── notebooks/
+│   ├── 01_data_ingestion.ipynb
+│   ├── 02_data_cleaning.ipynb
+│   ├── 03_eda_analysis.ipynb
+│   ├── 04_performance_analytics.ipynb
+│   └── 05_advanced_analytics.ipynb
+├── dashboard/
+│   └── bluestock_mf.pbix    # 4-page interactive Power BI dashboard
+├── sql/
+│   ├── schema.sql           # Database schema definition (DDL)
+│   └── queries.sql          # 10 core business queries
+├── reports/                 # Exported charts, scorecards, and PDF deliverables
+└── README.md
+```
 
-## Setup Instructions
+## Setup & Execution
 
-1. **Create and activate a virtual environment:**
-   ```cmd
-   python -m venv venv
-   venv\Scripts\activate
+### 1. Environment Setup
+Clone the repository, set up a virtual environment, and install dependencies:
+```cmd
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+pip install streamlit
+```
+
+### 2. Run the Data Pipeline (ETL)
+Ingest raw files, apply weekends/holidays forward-filling, and build the SQLite database schema:
+```cmd
+python scripts/etl_pipeline.py
+```
+
+### 3. Compute Performance Analytics
+Calculate annualized CAGR (trading-day basis), Sharpe, Sortino, Alpha, and Beta metrics, exporting scorecards and regression tables to the `reports/` folder:
+```cmd
+python scripts/compute_metrics.py
+```
+
+### 4. Run Advanced Quantitative Models
+Generate 5-year Monte Carlo price projection bands and map the Markowitz Efficient Frontier:
+```cmd
+python scripts/advanced_analytics.py
+```
+
+### 5. Launch the Streamlit Web Application
+View the interactive Python-based web dashboard locally in your browser:
+```cmd
+streamlit run app.py
+```
+
+## Deliverables & Verification
+* **Database**: `data/db/bluestock_mf.db` (Contains star-schema tables and `dim_date` dimension).
+* **Power BI**: `dashboard/bluestock_mf.pbix` (Interactive dashboards matching the 4 required pages).
+* **Analytical CSVs**: `reports/fund_scorecard.csv` and `reports/alpha_beta.csv`.
+* **Visual Plots**: `reports/benchmark_comparison_chart.png`, `reports/monte_carlo_simulation.png`, and `reports/efficient_frontier.png`.

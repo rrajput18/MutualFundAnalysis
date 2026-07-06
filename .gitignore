@@ -1,4 +1,5 @@
 data/db/*.db
+*.db
 venv/
 .idea/
 .vscode/
