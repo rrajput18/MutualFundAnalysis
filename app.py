@@ -83,7 +83,19 @@ def load_all_dashboard_data():
     }
 
 if not db_path.exists():
-    st.error("SQLite Database not found! Please run the Day 2 Cleaning & DB Load notebook (`02_data_cleaning.ipynb`) first to populate the SQLite database.")
+    st.warning("SQLite Database not found. Initializing database from raw files, please wait...")
+    try:
+        import subprocess
+        import sys
+        # Run the ETL pipeline script to create the DB dynamically
+        result = subprocess.run([sys.executable, "scripts/etl_pipeline.py"], capture_output=True, text=True)
+        if result.returncode == 0:
+            st.success("Database initialized successfully! Reloading...")
+            st.rerun()
+        else:
+            st.error(f"ETL execution failed: {result.stderr}")
+    except Exception as e:
+        st.error(f"Failed to automatically initialize database: {e}")
 else:
     try:
         # Load all data
