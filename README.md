@@ -2,6 +2,8 @@
 
 An end-to-end data pipeline, performance engine, and dashboard suite for Indian mutual fund analysis.
 
+🚀 **Live Interactive Dashboard**: [rrajput18-mutualfundanalysis-app-ln9lo9.streamlit.app](https://rrajput18-mutualfundanalysis-app-ln9lo9.streamlit.app/)
+
 ## Project Structure
 
 ```text
