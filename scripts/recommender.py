@@ -4,8 +4,7 @@ import pandas as pd
 from pathlib import Path
 
 def get_recommendations(risk_appetite):
-    script_dir = Path(__file__).resolve().parent
-    processed_dir = script_dir.parent / "data" / "processed"
+    processed_dir = Path("data/processed")
     perf_path = processed_dir / "clean_performance.csv"
     
     if not perf_path.exists():
